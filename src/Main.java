@@ -6,7 +6,7 @@ public class Main {
             do {
                 token = scannerA.nextToken();
                 if (token != null) {
-                    System.out.println(token);
+                    System.out.println(token.toString());
                 }
             } while (token != null);
         }catch (LexicalException e){

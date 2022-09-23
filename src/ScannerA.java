@@ -45,7 +45,7 @@ public class ScannerA {
                     } else if (isOperator(currentChar)) {
                         state = 5;
                     }else{
-                        throw new LexicalException("Unrecognized Symbol");
+                        throw new LexicalException("Símbolo não reconhecido");
                     }
                     break;
                 case 1:
@@ -55,7 +55,7 @@ public class ScannerA {
                     } else if(isSpace(currentChar) || isOperator(currentChar)){
                        state  = 2;
                     }else{
-                        throw new LexicalException("Malformed indetifier");
+                        throw new LexicalException("Identificador mal formado");
                     }
                     break;
                 case 2:
@@ -71,7 +71,7 @@ public class ScannerA {
                     } else if (!isChar(currentChar)) {
                         state = 4;
                     } else{
-                        throw new LexicalException("Unrecognized Number");
+                        throw new LexicalException("Número não reconhecido");
                     }
                 case 4:
                     token = new Token();
@@ -84,6 +84,7 @@ public class ScannerA {
                     token = new Token();
                     token.setType(Token.OPERATOR);
                     token.setText(term);
+                    back();
                     return token;
             }
         }

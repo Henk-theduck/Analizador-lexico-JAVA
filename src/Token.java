@@ -2,9 +2,6 @@ public class Token {
     public static final int IDENTIFIER = 0;
     public static final int NUMBER = 1;
     public static final int OPERATOR = 2;
-    public static final int PUNCTUATION = 3;
-    public static final int ASSIGNMENT = 4;
-
 
     private int type;
     private String text;
@@ -34,6 +31,9 @@ public class Token {
         this.text = text;
     }
 
-
+    @Override
+	public String toString() {
+		return "Token [tipo=" + type + ", texto=" + text + "]";
+	}
 
 }
