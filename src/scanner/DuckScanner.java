@@ -1,14 +1,19 @@
+package scanner;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class ScannerA {
+public class DuckScanner {
     private char[] content;
     private int state;
     private int position;
+    private int line;
+    private int column;
 
-    public ScannerA(String filename){
+    public DuckScanner(String filename){
         try{
+            line = 1;
+            column = 0;
             String textContent;
             textContent = new String(Files.readAllBytes(Paths.get(filename)), StandardCharsets.UTF_8);
             content = textContent.toCharArray();
@@ -28,6 +33,7 @@ public class ScannerA {
         state = 0;
         while (true) {
             currentChar = nextChar();
+            column++;
 
             switch (state) {
                 case 0:
@@ -36,14 +42,19 @@ public class ScannerA {
                         state = 1;
 
                     } else if (isDigit(currentChar)) {
-                        state = 3;
+                        state = 2;
                         term += currentChar;
 
                     } else if (isSpace(currentChar)) {
                         state = 0;
-
                     } else if (isOperator(currentChar)) {
-                        state = 5;
+                        term += currentChar;
+                        token = new Token();
+                        token.setType(Token.OPERATOR);
+                        token.setText(term);
+                        token.setLine(line);
+                        token.setColumn(column - term.length());
+                        return token;
                     }else{
                         throw new LexicalException("Símbolo não reconhecido");
                     }
@@ -52,40 +63,35 @@ public class ScannerA {
                     if (isChar(currentChar) || isDigit(currentChar)) {
                         state = 1;
                         term += currentChar;
-                    } else if(isSpace(currentChar) || isOperator(currentChar)){
-                       state  = 2;
+                    } else if(isSpace(currentChar) || isOperator(currentChar) || isEOF(currentChar)){
+                       if(!isEOF(currentChar)) back();
+                       token = new Token();
+                       token.setType(Token.IDENTIFIER);
+                       token.setText(term);
+                       token.setLine(line);
+                       token.setColumn(column - term.length());
+                       return token;
                     }else{
                         throw new LexicalException("Identificador mal formado");
                     }
                     break;
                 case 2:
-                    back();
-                    token  = new Token();
-                    token.setType(Token.IDENTIFIER);
-                    token.setText(term);
-                    return token;
-                case 3:
-                    if(isDigit(currentChar)){
-                        state = 3;
-                        term += currentChar;
-                    } else if (!isChar(currentChar)) {
-                        state = 4;
-                    } else{
-                        throw new LexicalException("Número não reconhecido");
-                    }
-                case 4:
+
+                if(isDigit(currentChar) || currentChar == '.'){
+                    state = 2;
+                    term += currentChar;
+                } else if (!isChar(currentChar) || isEOF(currentChar)){
+                    if(!isEOF(currentChar)) back();
                     token = new Token();
                     token.setType(Token.NUMBER);
                     token.setText(term);
-                    back();
+                    token.setLine(line);
+                    token.setColumn(column - term.length());
                     return token;
-                case 5:
-                    term += currentChar;
-                    token = new Token();
-                    token.setType(Token.OPERATOR);
-                    token.setText(term);
-                    back();
-                    return token;
+                } else{
+                    throw new LexicalException("Identificador mal formado");
+                }
+                break;
             }
         }
     }
@@ -103,10 +109,18 @@ public class ScannerA {
     }
 
     private boolean isSpace(char c){
+        
+        if (c == '\n' || c== '\r') {
+			line++;
+			column=0;
+		}
         return c == ' ' || c == '\t' || c == '\n' || c == '\r';
     }
 
     private char nextChar(){
+        if (isEOF()) {
+			return '\0';
+		}
         return content[position++];
     }
     private boolean isEOF(){
@@ -115,5 +129,10 @@ public class ScannerA {
 
     private void back() {
         position--;
+        column--;
+    }
+
+    private boolean isEOF(char c) {
+    	return c == '\0';
     }
 }
